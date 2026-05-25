@@ -1144,53 +1144,47 @@ function attachListPreview() {
 
 function renderAbout() {
   const words = [
-    "I'm",
-    "Pacome",
-    "Pertant,",
-    "motion",
-    "and",
-    "sound",
-    "designer",
-    "based",
-    "in",
-    "Paris.",
-    "I",
-    "move",
-    "shapes",
-    "and",
-    "sound",
-    "to",
-    "create",
-    "emotional",
-    "content.",
-    "Always",
-    "playing",
-    "with",
-    "rhythm,",
-    "sound",
-    "and",
-    "visual",
-    "narrative",
-    "on",
-    "a",
-    "2D",
-    "and/or",
-    "3D",
-    "canvas.",
-    "Clean",
-    "at",
-    "times,",
-    "experimental",
-    "at",
-    "others."
+    "我是",
+    "刘灿旭，",
+    "居住在",
+    "北京。",
+    "我长期参与",
+    "AIGC",
+    "数据评测、",
+    "视频理解",
+    "与",
+    "文生视频",
+    "质量分析，",
+    "熟悉从",
+    "规则制定、",
+    "评分校准、",
+    "争议仲裁",
+    "到",
+    "Badcase",
+    "归因复盘",
+    "的全链路流程。",
+    "我关注",
+    "模型输出",
+    "在真实业务场景中的",
+    "可用性、",
+    "一致性",
+    "和",
+    "表达质量，",
+    "也会把",
+    "重复经验",
+    "沉淀为",
+    "自动化工作流，",
+    "让评测更稳定，",
+    "让创意生产",
+    "更可靠。"
   ];
   const chipAfter = new Map([
-    [2, projects[0].thumb],
-    [9, projects[1].thumb],
-    [14, projects[5].thumb],
+    [1, projects[0].thumb],
+    [6, projects[8].thumb],
+    [10, projects[4].thumb],
     [18, projects[2].thumb],
-    [25, projects[4].thumb],
-    [35, projects[8].thumb]
+    [25, projects[15].thumb],
+    [32, projects[21].thumb]
   ]);
   const text = words
     .map((word, index) => {
@@ -1223,14 +1217,14 @@ function renderAbout() {
         <div class="carousel-track">${carouselItems}</div>
         <div class="carousel-track" aria-hidden="true">${carouselItems}</div>
       </div>
-      <section class="social-section" aria-label="Social links">
+      <section class="social-section" aria-label="Contact and expertise">
         <div class="social-stack">
-          <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-          <a href="https://www.x.com/pacomepertant" target="_blank" rel="noopener noreferrer">X / Twitter</a>
-          <a href="https://www.behance.net/pacomepertant" target="_blank" rel="noopener noreferrer">Behance</a>
-          <a href="https://www.linkedin.com/in/pac%C3%B4me-pertant-b4437126b/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <a href="mailto:liucanxv@163.com">liucanxv@163.com</a>
+          <span>AIGC Evaluation</span>
+          <span>Prompt Workflow</span>
+          <span>Video Caption QA</span>
         </div>
-        <p class="credits">design <a href="https://x.com/louis_bcqt" target="_blank" rel="noopener noreferrer">@louis_bcqt</a> | development <a href="https://x.com/colindmg" target="_blank" rel="noopener noreferrer">@colindmg</a></p>
+        <p class="credits">based in Beijing · AI data quality · visual generation workflow</p>
       </section>
     </section>
   `;

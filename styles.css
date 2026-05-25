@@ -1377,9 +1377,9 @@ body.has-entered .loader {
 .about-text {
   font-size: 32rem;
   font-weight: 650;
-  line-height: 1;
+  line-height: 1.38;
   margin: 0;
-  max-width: 820rem;
+  max-width: 960rem;
   text-align: center;
 }
 
@@ -1513,15 +1513,18 @@ body.has-entered .loader {
   text-align: center;
 }
 
-.social-stack a {
+.social-stack a,
+.social-stack span {
   color: var(--soft);
+  display: block;
   font-size: 64rem;
   font-weight: 650;
   padding: 7rem 0;
   transition: color 0.25s ease, opacity 0.2s ease;
 }
 
-.social-stack:hover a {
+.social-stack:hover a,
+.social-stack:hover span {
   opacity: 0.4;
 }
 
