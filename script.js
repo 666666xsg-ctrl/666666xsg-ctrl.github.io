@@ -1,5 +1,3 @@
-const showreelPlaybackId = "ycc6bXk6hOWxGnyb6F3wvUxPPLiDML00P9OPkYMjuSN8";
-
 const mediaRoot = "assets/user-media";
 const mediaVersion = "media-2";
 let pendingProjectTransition = null;
@@ -947,18 +945,13 @@ const menuEmailText = document.querySelector(".menu-email-text");
 const loader = document.querySelector(".loader");
 const introSignature = document.querySelector(".intro-signature");
 const soundButton = document.querySelector(".sound-button");
-const showreelCard = document.querySelector(".showreel-card");
-const dialog = document.querySelector(".video-dialog");
-const dialogVideo = dialog.querySelector("video");
+const blessingTrigger = document.querySelector(".blessing-trigger");
+const dialog = document.querySelector(".blessing-dialog");
 const dialogClose = dialog.querySelector(".dialog-close");
 
 let mode = "spiral";
 let cleanups = [];
 let loaderHideTimer = null;
-
-function muxMp4(playbackId) {
-  return `https://stream.mux.com/${playbackId}/medium.mp4`;
-}
 
 function escapeHtml(value) {
   return String(value)
@@ -1349,16 +1342,11 @@ function resetIntroPointer() {
   introSignature.classList.remove("is-hovered");
 }
 
-function openShowreel() {
-  dialogVideo.src = muxMp4(showreelPlaybackId);
+function openBlessing() {
   dialog.showModal();
-  dialogVideo.play().catch(() => {});
 }
 
-function closeShowreel() {
-  dialogVideo.pause();
-  dialogVideo.removeAttribute("src");
-  dialogVideo.load();
+function closeBlessing() {
   dialog.close();
 }
 
@@ -1391,17 +1379,17 @@ if (introSignature) {
 }
 
 soundButton.addEventListener("click", () => body.classList.toggle("is-muted"));
-showreelCard.addEventListener("click", openShowreel);
-dialogClose.addEventListener("click", closeShowreel);
+blessingTrigger.addEventListener("click", openBlessing);
+dialogClose.addEventListener("click", closeBlessing);
 dialog.addEventListener("click", (event) => {
-  if (event.target === dialog) closeShowreel();
+  if (event.target === dialog) closeBlessing();
 });
 
 window.addEventListener("hashchange", render);
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeMenu();
-    if (dialog.open) closeShowreel();
+    if (dialog.open) closeBlessing();
   }
 });
 

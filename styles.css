@@ -613,71 +613,97 @@ body.is-muted .sound-wave {
   opacity: 0.2;
 }
 
-.showreel-card {
+.blessing-trigger {
   bottom: var(--margin);
-  height: 158rem;
+  height: 132rem;
   left: var(--margin);
   position: fixed;
-  transform: translate(-102rem, 34rem) rotate(-15deg);
-  transition: transform 0.3s var(--spring), opacity 0.25s ease;
-  width: 280rem;
+  transform: translate(-18rem, 18rem) rotate(-8deg);
+  transition: transform 0.36s var(--spring), opacity 0.25s ease;
+  width: 132rem;
   z-index: 24;
 }
 
-.showreel-card:hover {
-  transform: translate(-96rem, 28rem) rotate(-13deg) scale(1.04);
+.blessing-trigger:hover,
+.blessing-trigger:focus-visible {
+  transform: translate(-12rem, 10rem) rotate(-5deg) scale(1.045);
 }
 
-.showreel-frame {
-  aspect-ratio: 16 / 9;
-  box-shadow: 0 5rem 16rem rgba(0, 0, 0, 0.35);
-  display: block;
+.blessing-trigger__surface {
+  align-items: center;
+  background:
+    radial-gradient(circle at 64% 18%, rgba(255, 255, 255, 0.42) 0 5rem, transparent 7rem),
+    radial-gradient(circle at 38% 30%, rgba(158, 255, 81, 0.92) 0 16rem, transparent 30rem),
+    radial-gradient(circle at 68% 70%, rgba(33, 255, 192, 0.72) 0 17rem, transparent 35rem),
+    linear-gradient(145deg, rgba(18, 25, 22, 0.98), rgba(2, 3, 3, 0.98));
+  border: 1rem solid rgba(250, 250, 250, 0.12);
+  border-radius: 28rem;
+  box-shadow: 0 20rem 50rem rgba(0, 0, 0, 0.42), 0 0 34rem rgba(33, 255, 192, 0.14);
+  display: flex;
+  height: 92rem;
+  justify-content: center;
+  left: 20rem;
   overflow: hidden;
+  position: absolute;
+  top: 20rem;
+  width: 92rem;
 }
 
-.showreel-frame,
-.showreel-frame img {
-  border-radius: 8rem;
-  height: 100%;
-  width: 100%;
+.blessing-trigger__glow {
+  background: conic-gradient(from 150deg, rgba(33, 255, 192, 0), rgba(33, 255, 192, 0.78), rgba(245, 255, 94, 0.88), rgba(33, 255, 192, 0));
+  border-radius: 50%;
+  filter: blur(10rem);
+  height: 74rem;
+  opacity: 0.42;
+  position: absolute;
+  transform: translate(12rem, 14rem) rotate(18deg);
+  width: 74rem;
 }
 
-.showreel-frame img {
-  object-fit: cover;
+.blessing-trigger__mark {
+  color: var(--white);
+  font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  font-size: 42rem;
+  font-weight: 650;
+  line-height: 1;
+  position: relative;
+  text-shadow: 0 0 20rem rgba(250, 250, 250, 0.2);
+  z-index: 1;
 }
 
-.showreel-card svg {
-  height: 182rem;
-  left: -12rem;
+.blessing-trigger__ring {
+  animation: marquee-path 16s linear infinite;
+  height: 132rem;
+  inset: 0;
   overflow: visible;
   pointer-events: none;
   position: absolute;
-  top: -12rem;
-  width: 304rem;
+  width: 132rem;
 }
 
-.showreel-card path {
+.blessing-trigger__ring path {
   fill: none;
 }
 
-.showreel-card text {
-  animation: marquee-path 12s linear infinite;
-  fill: var(--white);
-  font-size: 18rem;
-  font-weight: 600;
+.blessing-trigger__ring text {
+  fill: rgba(250, 250, 250, 0.84);
+  font-size: 10rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 body[data-mode="list"] .sound-button,
-body[data-mode="list"] .showreel-card {
+body[data-mode="list"] .blessing-trigger {
   display: none;
 }
 
 @keyframes marquee-path {
   from {
-    transform: translateX(0);
+    transform: rotate(0deg);
   }
   to {
-    transform: translateX(-38rem);
+    transform: rotate(360deg);
   }
 }
 
@@ -1729,9 +1755,10 @@ body.has-entered .loader {
   color: var(--white);
 }
 
-.video-dialog {
-  background: rgba(10, 10, 10, 0.92);
+.blessing-dialog {
+  background: transparent;
   border: 0;
+  color: var(--white);
   height: 100dvh;
   margin: 0;
   max-height: none;
@@ -1741,21 +1768,74 @@ body.has-entered .loader {
   z-index: 120;
 }
 
-.video-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.7);
+.blessing-dialog::backdrop {
+  animation: blessing-backdrop 0.38s ease forwards;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(33, 255, 192, 0.12), transparent 36%),
+    rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(14rem);
 }
 
-.video-dialog[open] {
+.blessing-dialog[open] {
   align-items: center;
   display: flex;
   justify-content: center;
 }
 
-.video-dialog video {
-  background: black;
+.blessing-panel {
+  animation: blessing-panel-in 0.72s var(--spring) both;
+  background:
+    linear-gradient(145deg, rgba(16, 21, 19, 0.96), rgba(3, 4, 4, 0.96)),
+    radial-gradient(circle at 18% 0%, rgba(158, 255, 81, 0.2), transparent 30%);
+  border: 1rem solid rgba(250, 250, 250, 0.12);
   border-radius: 8rem;
-  max-height: calc(100dvh - 120rem);
-  width: min(1200rem, 100%);
+  box-shadow: 0 44rem 110rem rgba(0, 0, 0, 0.6), inset 0 1rem 0 rgba(250, 250, 250, 0.08);
+  overflow: hidden;
+  padding: 56rem;
+  position: relative;
+  width: min(720rem, calc(100vw - var(--margin) * 2));
+}
+
+.blessing-panel::before {
+  background: linear-gradient(90deg, rgba(33, 255, 192, 0), rgba(33, 255, 192, 0.55), rgba(250, 250, 250, 0.44), rgba(33, 255, 192, 0));
+  content: "";
+  height: 1rem;
+  left: 0;
+  opacity: 0.72;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.blessing-panel__eyebrow {
+  animation: blessing-text-in 0.62s 0.1s ease both;
+  color: rgba(250, 250, 250, 0.46);
+  display: block;
+  font-size: 13rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin-bottom: 28rem;
+}
+
+.blessing-panel p {
+  animation: blessing-text-in 0.7s 0.2s ease both;
+  font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  font-size: clamp(28rem, 4.2vw, 56rem);
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.34;
+  margin: 0;
+  max-width: 13em;
+}
+
+.blessing-panel i {
+  animation: blessing-line-in 0.74s 0.38s var(--quad) both;
+  background: rgba(250, 250, 250, 0.56);
+  display: block;
+  height: 1rem;
+  margin-top: 38rem;
+  transform-origin: left center;
+  width: 88rem;
 }
 
 .dialog-close {
@@ -1771,6 +1851,62 @@ body.has-entered .loader {
   top: var(--margin);
   width: 48rem;
   z-index: 130;
+}
+
+.blessing-close {
+  background: rgba(250, 250, 250, 0.08);
+  border: 1rem solid rgba(250, 250, 250, 0.12);
+  color: var(--white);
+}
+
+.blessing-close:hover,
+.blessing-close:focus-visible {
+  background: var(--green);
+  color: var(--ink);
+}
+
+@keyframes blessing-backdrop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes blessing-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(18rem) scale(0.975);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes blessing-text-in {
+  from {
+    filter: blur(8rem);
+    opacity: 0;
+    transform: translateY(10rem);
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blessing-line-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
 }
 
 @media (max-width: 900px) {
@@ -1813,8 +1949,8 @@ body.has-entered .loader {
     left: 20rem;
   }
 
-  .showreel-card {
-    transform: translate(-116rem, 42rem) rotate(-15deg) scale(0.86);
+  .blessing-trigger {
+    transform: translate(-26rem, 22rem) rotate(-8deg) scale(0.86);
   }
 
   .sound-button {

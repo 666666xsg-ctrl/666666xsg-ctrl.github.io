@@ -6,7 +6,7 @@
     <title>Pac&ocirc;me Pertant &#10034; Portfolio</title>
     <meta name="description" content="Motion and sound designer portfolio replica.">
     <link rel="stylesheet" href="https://use.typekit.net/cxl5sdt.css">
-    <link rel="stylesheet" href="styles.css?v=webgl-local-three-27">
+    <link rel="stylesheet" href="styles.css?v=webgl-local-three-28">
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
@@ -75,15 +75,14 @@
       </svg>
     </button>
 
-    <button class="showreel-card" type="button" aria-label="Open showreel">
-      <span class="showreel-frame">
-        <img src="https://pacomepertant.com/_nuxt/reel-thumbnail.Cx_2hmdl.png" alt="Showreel thumbnail">
+    <button class="blessing-trigger" type="button" aria-label="打开祝福">
+      <span class="blessing-trigger__surface">
+        <span class="blessing-trigger__glow"></span>
+        <span class="blessing-trigger__mark">愿</span>
       </span>
-      <svg viewBox="0 0 304 182" aria-hidden="true">
-        <path id="showreelPath" d="M29.568 182H274.432C290.14 182 304 169 304 152.286V29.714C304 13 291.064 0 274.432 0H29.568C12.936 0 0 13 0 29.714V152.286C0 169 13.86 182 29.568 182Z"></path>
-        <text>
-          <textPath href="#showreelPath" startOffset="0">showreel &#8226; 2025 &#8226; showreel &#8226; 2025 &#8226; showreel &#8226; 2025 &#8226;</textPath>
-        </text>
+      <svg class="blessing-trigger__ring" viewBox="0 0 132 132" aria-hidden="true">
+        <path id="blessingPath" d="M66 66m-52 0a52 52 0 1 1 104 0a52 52 0 1 1 -104 0"></path>
+        <text><textPath href="#blessingPath">blessing &#8226; for you &#8226; blessing &#8226; for you &#8226;</textPath></text>
       </svg>
     </button>
 
@@ -102,13 +101,17 @@
       </div>
     </section>
 
-    <dialog class="video-dialog" aria-label="Showreel">
-      <button class="dialog-close" type="button" aria-label="Close video">
+    <dialog class="blessing-dialog" aria-label="祝福">
+      <button class="dialog-close blessing-close" type="button" aria-label="关闭祝福">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
       </button>
-      <video controls playsinline poster="https://pacomepertant.com/_nuxt/reel-thumbnail.Cx_2hmdl.png"></video>
+      <article class="blessing-panel">
+        <span class="blessing-panel__eyebrow">FOR YOU</span>
+        <p>愿你一路有光，心有热爱，眼有星河；每一次出发，都遇见更辽阔的自己。</p>
+        <i aria-hidden="true"></i>
+      </article>
     </dialog>
 
-    <script src="script.js?v=webgl-local-three-27"></script>
+    <script src="script.js?v=webgl-local-three-28"></script>
   </body>
 </html>
