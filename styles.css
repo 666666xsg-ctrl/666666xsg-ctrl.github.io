@@ -2271,3 +2271,305 @@ img.detail-media.is-loaded {
   img.detail-media.is-progressive,
   img.detail-media.is-loaded { filter: none; transform: none; animation: none; }
 }
+
+/* ============================================================
+   祝福弹窗 · 抽签重设计
+   ============================================================ */
+.blessing-panel {
+  background:
+    linear-gradient(150deg, rgba(14, 19, 17, 0.97), rgba(4, 5, 5, 0.97)),
+    radial-gradient(circle at 16% -4%, rgba(33, 255, 192, 0.22), transparent 34%);
+  display: flex;
+  flex-direction: column;
+  min-height: 320rem;
+  padding: 48rem 56rem 40rem;
+}
+
+/* 极光呼吸底色 */
+.blessing-panel::after {
+  background:
+    radial-gradient(60% 90% at 80% 110%, rgba(33, 255, 192, 0.10), transparent 60%),
+    radial-gradient(50% 70% at 10% 100%, rgba(120, 200, 255, 0.05), transparent 65%);
+  content: "";
+  inset: 0;
+  position: absolute;
+  pointer-events: none;
+  animation: aurora-breathe 7s ease-in-out infinite alternate;
+}
+@keyframes aurora-breathe {
+  from { opacity: 0.5; transform: translateY(4rem); }
+  to   { opacity: 1;   transform: translateY(-4rem); }
+}
+
+.blessing-motes {
+  inset: 0;
+  height: 100%;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+}
+
+/* 巨字水印,缓慢游移 */
+.blessing-watermark {
+  color: transparent;
+  -webkit-text-stroke: 1rem rgba(250, 250, 250, 0.07);
+  font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  font-size: 300rem;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  position: absolute;
+  right: -28rem;
+  top: -40rem;
+  user-select: none;
+  animation: watermark-drift 12s ease-in-out infinite alternate;
+}
+@keyframes watermark-drift {
+  from { transform: translate(0, 0) rotate(0deg); }
+  to   { transform: translate(-10rem, 8rem) rotate(-2.5deg); }
+}
+
+.blessing-head {
+  align-items: center;
+  display: flex;
+  gap: 18rem;
+  margin-bottom: 30rem;
+  position: relative;
+  z-index: 2;
+}
+
+.blessing-theme {
+  align-items: center;
+  display: inline-flex;
+  gap: 10rem;
+}
+.blessing-theme i {
+  background: linear-gradient(90deg, transparent, rgba(33, 255, 192, 0.7));
+  display: block;
+  height: 1rem;
+  width: 26rem;
+}
+.blessing-theme i:last-child {
+  background: linear-gradient(90deg, rgba(33, 255, 192, 0.7), transparent);
+}
+.blessing-theme b {
+  color: var(--green);
+  font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  font-size: 15rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  margin-right: -0.3em;
+  text-shadow: 0 0 18rem rgba(33, 255, 192, 0.45);
+}
+
+.blessing-panel .blessing-panel__eyebrow { margin-bottom: 0; }
+.blessing-panel .blessing-text {
+  animation: none;
+  position: relative;
+  z-index: 2;
+}
+.blessing-head + .blessing-text { flex: 1; }
+
+/* 逐字浮现 */
+.blessing-char {
+  animation: char-rise 0.6s var(--spring) both;
+  display: inline-block;
+}
+@keyframes char-rise {
+  from {
+    filter: blur(10rem);
+    opacity: 0;
+    transform: translateY(0.42em) rotate(4deg) scale(0.92);
+  }
+  60% { filter: blur(0); }
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+.blessing-foot {
+  align-items: flex-end;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* 再抽一愿 */
+.blessing-again {
+  align-items: center;
+  background: rgba(250, 250, 250, 0.05);
+  border: 1rem solid rgba(250, 250, 250, 0.14);
+  border-radius: 999rem;
+  color: rgba(250, 250, 250, 0.78);
+  display: inline-flex;
+  font-size: 13rem;
+  font-weight: 600;
+  gap: 8rem;
+  letter-spacing: 0.08em;
+  padding: 10rem 18rem 10rem 14rem;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s var(--spring);
+}
+.blessing-again svg {
+  fill: none;
+  height: 14rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  transition: transform 0.5s var(--spring);
+  width: 14rem;
+}
+.blessing-again:hover,
+.blessing-again:focus-visible {
+  background: rgba(33, 255, 192, 0.12);
+  border-color: rgba(33, 255, 192, 0.5);
+  color: var(--green);
+  transform: translateY(-2rem);
+}
+.blessing-again:hover svg { transform: rotate(-200deg); }
+.blessing-again:active { transform: translateY(0) scale(0.97); }
+
+/* 印章:文字落定后盖下,随后轻微呼吸 */
+.blessing-seal {
+  align-items: center;
+  border: 1.5rem solid rgba(33, 255, 192, 0.65);
+  border-radius: 10rem;
+  color: var(--green);
+  display: flex;
+  font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  font-size: 22rem;
+  font-weight: 700;
+  height: 46rem;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(2.2) rotate(14deg);
+  width: 46rem;
+}
+.blessing-seal.is-stamped {
+  animation:
+    seal-stamp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    seal-breathe 3.2s ease-in-out 1.4s infinite;
+}
+@keyframes seal-stamp {
+  from { opacity: 0; transform: scale(2.2) rotate(14deg); filter: blur(4rem); }
+  62%  { opacity: 1; transform: scale(0.94) rotate(-5deg); filter: blur(0); }
+  to   { opacity: 1; transform: scale(1) rotate(-4deg); }
+}
+@keyframes seal-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(33, 255, 192, 0.0), 0 0 14rem rgba(33, 255, 192, 0.18); }
+  50%      { box-shadow: 0 0 0 5rem rgba(33, 255, 192, 0.07), 0 0 26rem rgba(33, 255, 192, 0.32); }
+}
+
+/* 盖印瞬间面板轻震 */
+.blessing-panel.is-sealed { animation: panel-thump 0.4s ease; }
+@keyframes panel-thump {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(0.994); }
+}
+
+/* 关闭时的退场 */
+.blessing-dialog.is-closing .blessing-panel {
+  animation: panel-out 0.26s ease both;
+}
+.blessing-dialog.is-closing::backdrop {
+  animation: backdrop-out 0.26s ease both;
+}
+@keyframes panel-out {
+  to { opacity: 0; transform: translateY(12rem) scale(0.97); filter: blur(6rem); }
+}
+@keyframes backdrop-out { to { opacity: 0; } }
+
+@media (max-width: 720px) {
+  .blessing-panel { padding: 36rem 26rem 28rem; }
+  .blessing-watermark { font-size: 190rem; right: -20rem; top: -24rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blessing-char { animation-duration: 0.01s; animation-delay: 0s !important; }
+  .blessing-watermark, .blessing-panel::after, .blessing-seal.is-stamped { animation: none; }
+  .blessing-seal.is-stamped { opacity: 1; transform: scale(1) rotate(-4deg); }
+}
+
+/* 覆盖旧版分隔线样式残留 */
+.blessing-theme i { animation: none; margin-top: 0; }
+
+/* ============================================================
+   全站细节特效
+   ============================================================ */
+
+/* —— 路由切换:内容淡入上移 —— */
+#app > * {
+  animation: route-in 0.55s var(--spring) both;
+}
+@keyframes route-in {
+  from { opacity: 0; transform: translateY(16rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* —— 菜单链接交错滑入 —— */
+.menu-links a {
+  opacity: 0;
+  transform: translateX(26rem);
+  transition:
+    opacity 0.5s var(--spring),
+    transform 0.5s var(--spring),
+    color 0.2s ease;
+}
+body.menu-open .menu-links a {
+  opacity: 1;
+  transform: translateX(0);
+}
+body.menu-open .menu-links a:nth-child(1) { transition-delay: 0.08s; }
+body.menu-open .menu-links a:nth-child(2) { transition-delay: 0.16s; }
+body.menu-open .menu-links a:nth-child(3) { transition-delay: 0.24s; }
+
+/* —— 详情标题解码动画的占位字符颜色 —— */
+.project-title .decode-glyph { color: rgba(33, 255, 192, 0.65); }
+
+/* —— 提示词复制按钮 —— */
+.prompt-copy {
+  align-items: center;
+  background: rgba(250, 250, 250, 0.06);
+  border: 1rem solid rgba(250, 250, 250, 0.14);
+  border-radius: 999rem;
+  color: rgba(250, 250, 250, 0.7);
+  display: inline-flex;
+  font-size: 12rem;
+  font-weight: 600;
+  gap: 6rem;
+  letter-spacing: 0.06em;
+  margin-left: auto;
+  padding: 6rem 13rem;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s var(--spring);
+}
+.prompt-copy svg {
+  fill: none;
+  height: 12rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 12rem;
+}
+.prompt-copy:hover,
+.prompt-copy:focus-visible {
+  background: rgba(33, 255, 192, 0.1);
+  border-color: rgba(33, 255, 192, 0.45);
+  color: var(--green);
+}
+.prompt-copy.is-copied {
+  background: rgba(33, 255, 192, 0.16);
+  border-color: rgba(33, 255, 192, 0.6);
+  color: var(--green);
+  transform: scale(1.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app > * { animation: none; }
+  .menu-links a { opacity: 1; transform: none; transition-delay: 0s; }
+}

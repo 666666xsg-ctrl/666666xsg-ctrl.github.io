@@ -1289,6 +1289,10 @@ function renderProject(slug) {
             <div class="prompt-panel-header">
               <span>生成提示词</span>
               ${project.groupPhoto ? "<em>合照置顶</em>" : ""}
+              <button class="prompt-copy" type="button" data-prompt-copy>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a1 1 0 0 1 1-1h10"></path></svg>
+                <span>复制</span>
+              </button>
             </div>
             <pre>${escapeHtml(project.prompt)}</pre>
           </div>
@@ -1308,7 +1312,70 @@ function renderProject(slug) {
   if (video) video.play().catch(() => {});
   attachProgressiveMedia();
   attachMediaTilt();
+  attachTitleDecode(project.title);
+  attachPromptCopy(project.prompt);
   runPendingProjectTransition(project);
+}
+
+/* —— 标题解码动画:乱码字符逐位落定 —— */
+function attachTitleDecode(finalText) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const node = app.querySelector(".project-title");
+  if (!node) return;
+  const glyphs = "▚▞▖▘░▒◆◇╳—╱╲";
+  const chars = Array.from(finalText);
+  const total = 26;
+  let frame = 0;
+  let raf = 0;
+
+  const step = () => {
+    frame += 1;
+    const settled = Math.floor((frame / total) * chars.length);
+    node.innerHTML = chars
+      .map((char, index) => {
+        if (index < settled || char === " ") return escapeHtml(char);
+        return `<span class="decode-glyph">${glyphs[Math.floor(Math.random() * glyphs.length)]}</span>`;
+      })
+      .join("");
+    if (settled < chars.length) {
+      raf = requestAnimationFrame(step);
+    } else {
+      node.textContent = finalText;
+    }
+  };
+  raf = requestAnimationFrame(step);
+  cleanups.push(() => {
+    cancelAnimationFrame(raf);
+    if (node.isConnected) node.textContent = finalText;
+  });
+}
+
+/* —— 提示词一键复制 —— */
+function attachPromptCopy(promptText) {
+  const button = app.querySelector("[data-prompt-copy]");
+  if (!button) return;
+  const label = button.querySelector("span");
+  let timer = 0;
+  button.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(promptText);
+    } catch {
+      const helper = document.createElement("textarea");
+      helper.value = promptText;
+      document.body.appendChild(helper);
+      helper.select();
+      document.execCommand("copy");
+      helper.remove();
+    }
+    button.classList.add("is-copied");
+    label.textContent = "已复制 ✓";
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      button.classList.remove("is-copied");
+      label.textContent = "复制";
+    }, 1600);
+  });
+  cleanups.push(() => window.clearTimeout(timer));
 }
 
 /* —— 渐进式加载：先显示缩略图(已缓存)，大图就位后淡入 —— */
@@ -1423,12 +1490,149 @@ function resetIntroPointer() {
   introSignature.classList.remove("is-hovered");
 }
 
+/* ============================================================
+   祝福 · 抽签引擎
+   ============================================================ */
+const BLESSINGS = [
+  { theme: "光", text: "愿你一路有光，心有热爱，眼有星河；每一次出发，都遇见更辽阔的自己。" },
+  { theme: "行", text: "愿你走过的每一段路都不白走，看过的每一片云都落进心里，成为日后的底气。" },
+  { theme: "春", text: "愿你历遍山河，仍觉人间值得；霜雪过后，依旧有一整个春天为你而来。" },
+  { theme: "静", text: "愿你在喧嚣里守住一隅安静，慢慢走，稳稳爱，不慌不忙地长成自己。" },
+  { theme: "野", text: "愿你眼里有篝火，胸中有旷野，永远对世界保持第一次抵达时的惊奇。" },
+  { theme: "海", text: "愿所有失去都以另一种方式归来，愿你心里的潮水，永远向着明亮那方。" },
+  { theme: "燃", text: "愿你的热爱永不熄灭，做的每一件小事，都在悄悄把你带向想去的地方。" },
+  { theme: "月", text: "愿你在深夜里也有月光可枕，孤独时仍能听见自己心里的回响。" },
+  { theme: "风", text: "愿你乘的是长风，赴的是山海；所有的不期而遇，都在路上等你。" },
+  { theme: "晴", text: "愿你被生活温柔相待，偶有阴天，也总能在云层背后找到那束留给你的晴。" }
+];
+
+let lastBlessingIndex = -1;
+let motesEngine = null;
+let blessingCharTimers = [];
+
+function pickBlessing() {
+  let index;
+  do {
+    index = Math.floor(Math.random() * BLESSINGS.length);
+  } while (index === lastBlessingIndex && BLESSINGS.length > 1);
+  lastBlessingIndex = index;
+  return BLESSINGS[index];
+}
+
+function showBlessing() {
+  const blessing = pickBlessing();
+  const textNode = dialog.querySelector(".blessing-text");
+  const themeNode = dialog.querySelector(".blessing-theme b");
+  const watermark = dialog.querySelector(".blessing-watermark");
+  const seal = dialog.querySelector(".blessing-seal");
+  const panel = dialog.querySelector(".blessing-panel");
+
+  blessingCharTimers.forEach(clearTimeout);
+  blessingCharTimers = [];
+
+  themeNode.textContent = blessing.theme;
+  watermark.textContent = blessing.theme;
+  panel.classList.remove("is-sealed");
+  seal.classList.remove("is-stamped");
+
+  /* 逐字浮现 */
+  textNode.innerHTML = "";
+  const chars = Array.from(blessing.text);
+  chars.forEach((char, index) => {
+    const span = document.createElement("span");
+    span.className = "blessing-char";
+    span.textContent = char;
+    span.style.animationDelay = `${0.32 + index * 0.034}s`;
+    textNode.appendChild(span);
+  });
+
+  /* 文字落定后,印章盖下 */
+  const sealDelay = 600 + chars.length * 34;
+  blessingCharTimers.push(
+    window.setTimeout(() => {
+      seal.classList.add("is-stamped");
+      panel.classList.add("is-sealed");
+    }, sealDelay)
+  );
+}
+
+/* —— 漂浮光尘粒子 —— */
+function startMotes() {
+  const canvas = dialog.querySelector(".blessing-motes");
+  if (!canvas || motesEngine) return;
+  const ctx = canvas.getContext("2d");
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let raf = 0;
+  let particles = [];
+
+  const resize = () => {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+  };
+
+  const spawn = () => {
+    const count = window.matchMedia("(max-width: 720px)").matches ? 22 : 38;
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: (Math.random() * 1.6 + 0.5) * dpr,
+      vx: (Math.random() - 0.5) * 0.12 * dpr,
+      vy: -(Math.random() * 0.22 + 0.06) * dpr,
+      tw: Math.random() * Math.PI * 2,
+      tws: Math.random() * 0.018 + 0.006,
+      green: Math.random() < 0.4
+    }));
+  };
+
+  const tick = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.tw += p.tws;
+      if (p.y < -8) { p.y = canvas.height + 8; p.x = Math.random() * canvas.width; }
+      if (p.x < -8) p.x = canvas.width + 8;
+      if (p.x > canvas.width + 8) p.x = -8;
+      const alpha = 0.16 + Math.abs(Math.sin(p.tw)) * 0.5;
+      ctx.beginPath();
+      ctx.fillStyle = p.green
+        ? `rgba(33, 255, 192, ${alpha * 0.8})`
+        : `rgba(250, 250, 250, ${alpha * 0.55})`;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    raf = requestAnimationFrame(tick);
+  };
+
+  resize();
+  spawn();
+  tick();
+  window.addEventListener("resize", resize);
+  motesEngine = {
+    stop() {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      motesEngine = null;
+    }
+  };
+}
+
 function openBlessing() {
   dialog.showModal();
+  showBlessing();
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) startMotes();
 }
 
 function closeBlessing() {
-  dialog.close();
+  dialog.classList.add("is-closing");
+  window.setTimeout(() => {
+    dialog.classList.remove("is-closing");
+    dialog.close();
+    motesEngine?.stop();
+    blessingCharTimers.forEach(clearTimeout);
+  }, 260);
 }
 
 modeButtons.forEach((button) => {
@@ -1461,6 +1665,11 @@ if (introSignature) {
 
 soundButton.addEventListener("click", () => body.classList.toggle("is-muted"));
 blessingTrigger.addEventListener("click", openBlessing);
+dialog.querySelector(".blessing-again")?.addEventListener("click", showBlessing);
+dialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  if (!dialog.classList.contains("is-closing")) closeBlessing();
+});
 dialogClose.addEventListener("click", closeBlessing);
 dialog.addEventListener("click", (event) => {
   if (event.target === dialog) closeBlessing();
