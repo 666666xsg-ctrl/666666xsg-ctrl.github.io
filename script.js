@@ -1039,6 +1039,8 @@ function renderWorks() {
     attachSpiralMotion();
   } else {
     attachListPreview();
+    attachListFilter();
+    attachVideoPreviews();
   }
 }
 
@@ -1084,10 +1086,18 @@ function renderSpiral() {
 }
 
 function renderMediaCard(project) {
+  const isVideo = project.mediaType === "video";
+  const badge = isVideo
+    ? `<span class="media-badge" aria-hidden="true">
+         <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"></path></svg>
+         <em>VIDEO</em>
+       </span>`
+    : "";
   return `
-    <a class="media-card media-card--${project.mediaType}" href="#/projects/${project.slug}" data-project-card data-slug="${project.slug}">
-      <span class="media-card-thumb">
+    <a class="media-card media-card--${project.mediaType}" href="#/projects/${project.slug}" data-project-card data-slug="${project.slug}" data-media-type="${project.mediaType}">
+      <span class="media-card-thumb"${isVideo ? ` data-video-src="${project.mediaSrc}"` : ""}>
         <img src="${project.thumb}" alt="${escapeHtml(project.title)} thumbnail" loading="lazy" decoding="async">
+        ${badge}
       </span>
       <span class="media-card-copy">
         <span class="media-card-title">${escapeHtml(project.title)}</span>
@@ -1118,8 +1128,18 @@ function renderList() {
   return `
     <div class="list-view">
       <div class="media-index">
-        ${renderMediaSection("Image", imageProjects)}
-        ${renderMediaSection("Video", videoProjects)}
+        <nav class="media-filter" aria-label="Filter media">
+          <span class="filter-indicator" aria-hidden="true"></span>
+          <button class="filter-tab is-active" type="button" data-filter="all">All <span>${projects.length}</span></button>
+          <button class="filter-tab" type="button" data-filter="image">Image <span>${imageProjects.length}</span></button>
+          <button class="filter-tab filter-tab--video" type="button" data-filter="video">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"></path></svg>
+            Video <span>${videoProjects.length}</span>
+          </button>
+        </nav>
+        <div class="media-grid media-grid--unified">
+          ${projects.map(renderMediaCard).join("")}
+        </div>
       </div>
     </div>
   `;
@@ -1462,6 +1482,91 @@ function attachCardReveal() {
   cleanups.push(() => io.disconnect());
 }
 
+/* —— 列表筛选:All / Image / Video,滑块指示器 —— */
+function attachListFilter() {
+  const nav = app.querySelector(".media-filter");
+  if (!nav) return;
+  const tabs = Array.from(nav.querySelectorAll(".filter-tab"));
+  const indicator = nav.querySelector(".filter-indicator");
+  const cards = Array.from(app.querySelectorAll(".media-card"));
+
+  const moveIndicator = (tab) => {
+    indicator.style.width = `${tab.offsetWidth}px`;
+    indicator.style.transform = `translateX(${tab.offsetLeft}px)`;
+  };
+
+  const applyFilter = (filter) => {
+    cards.forEach((card, index) => {
+      const match = filter === "all" || card.dataset.mediaType === filter;
+      if (match) {
+        card.classList.remove("is-filtered-out");
+        card.style.transitionDelay = `${(index % 8) * 30}ms`;
+        card.classList.remove("is-revealed");
+        void card.offsetWidth;
+        card.classList.add("is-revealed");
+      } else {
+        card.classList.add("is-filtered-out");
+      }
+    });
+  };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((other) => other.classList.toggle("is-active", other === tab));
+      moveIndicator(tab);
+      applyFilter(tab.dataset.filter);
+    });
+  });
+
+  const onResize = () => {
+    const active = nav.querySelector(".filter-tab.is-active");
+    if (active) moveIndicator(active);
+  };
+  window.addEventListener("resize", onResize);
+  cleanups.push(() => window.removeEventListener("resize", onResize));
+
+  requestAnimationFrame(() => moveIndicator(tabs[0]));
+}
+
+/* —— 视频卡片:悬停自动播放静音预览 —— */
+function attachVideoPreviews() {
+  if (!window.matchMedia("(pointer: fine)").matches) return;
+  const thumbs = Array.from(app.querySelectorAll(".media-card-thumb[data-video-src]"));
+
+  thumbs.forEach((thumb) => {
+    let video = null;
+    let leaveTimer = 0;
+
+    const enter = () => {
+      window.clearTimeout(leaveTimer);
+      if (!video) {
+        video = document.createElement("video");
+        video.className = "media-card-preview";
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.preload = "metadata";
+        video.src = thumb.dataset.videoSrc;
+        thumb.appendChild(video);
+      }
+      video.currentTime = 0;
+      video.play().then(() => thumb.classList.add("is-previewing")).catch(() => {});
+    };
+
+    const leave = () => {
+      thumb.classList.remove("is-previewing");
+      leaveTimer = window.setTimeout(() => video?.pause(), 240);
+    };
+
+    thumb.closest(".media-card").addEventListener("pointerenter", enter);
+    thumb.closest(".media-card").addEventListener("pointerleave", leave);
+    cleanups.push(() => {
+      window.clearTimeout(leaveTimer);
+      video?.pause();
+    });
+  });
+}
+
 function enterSite(useSound) {
   body.classList.add("has-entered");
   body.classList.toggle("is-muted", !useSound);
@@ -1620,6 +1725,7 @@ function startMotes() {
 }
 
 function openBlessing() {
+  document.documentElement.classList.add("dialog-open");
   dialog.showModal();
   showBlessing();
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) startMotes();
@@ -1630,6 +1736,7 @@ function closeBlessing() {
   window.setTimeout(() => {
     dialog.classList.remove("is-closing");
     dialog.close();
+    document.documentElement.classList.remove("dialog-open");
     motesEngine?.stop();
     blessingCharTimers.forEach(clearTimeout);
   }, 260);
@@ -1720,6 +1827,26 @@ if (new URLSearchParams(window.location.search).has("skipIntro")) {
     ry += (my - ry) * 0.16;
     ring.style.transform = `translate(${rx}px, ${ry}px)`;
     requestAnimationFrame(trail);
+  })();
+})();
+
+/* —— 背景视差:极光与网格随指针轻微漂移 —— */
+(function initFieldParallax() {
+  if (!window.matchMedia("(pointer: fine)").matches) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const field = document.querySelector(".field");
+  if (!field) return;
+  let tx = 0, ty = 0, cx = 0, cy = 0;
+  window.addEventListener("pointermove", (e) => {
+    tx = (e.clientX / window.innerWidth - 0.5) * -14;
+    ty = (e.clientY / window.innerHeight - 0.5) * -10;
+  }, { passive: true });
+  (function loop() {
+    cx += (tx - cx) * 0.045;
+    cy += (ty - cy) * 0.045;
+    field.style.setProperty("--parX", cx.toFixed(2));
+    field.style.setProperty("--parY", cy.toFixed(2));
+    requestAnimationFrame(loop);
   })();
 })();
 

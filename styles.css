@@ -2573,3 +2573,237 @@ body.menu-open .menu-links a:nth-child(3) { transition-delay: 0.24s; }
   #app > * { animation: none; }
   .menu-links a { opacity: 1; transform: none; transition-delay: 0s; }
 }
+
+/* —— 修复:dialog 处于浏览器顶层,会盖住自定义光标,打开时切回系统光标 —— */
+html.dialog-open body,
+html.dialog-open a,
+html.dialog-open button,
+html.has-custom-cursor.dialog-open body,
+html.has-custom-cursor.dialog-open a,
+html.has-custom-cursor.dialog-open button,
+html.has-custom-cursor.dialog-open .blessing-dialog,
+html.has-custom-cursor.dialog-open .blessing-dialog * {
+  cursor: auto !important;
+}
+html.dialog-open .cursor-dot,
+html.dialog-open .cursor-ring { opacity: 0 !important; }
+html.has-custom-cursor.dialog-open .blessing-again,
+html.has-custom-cursor.dialog-open .blessing-close { cursor: pointer !important; }
+
+/* ============================================================
+   主页背景重设计:极光 + 精细网格 + 视差
+   ============================================================ */
+.field {
+  transform: translate3d(calc(var(--parX, 0) * 1rem), calc(var(--parY, 0) * 1rem), 0);
+}
+
+/* 精细网格线,向边缘渐隐 */
+.field__grid {
+  background:
+    linear-gradient(rgba(250, 250, 250, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(250, 250, 250, 0.028) 1px, transparent 1px);
+  background-size: 72rem 72rem;
+  inset: -10%;
+  -webkit-mask-image: radial-gradient(ellipse 75% 68% at 50% 46%, #000 18%, transparent 78%);
+  mask-image: radial-gradient(ellipse 75% 68% at 50% 46%, #000 18%, transparent 78%);
+  position: absolute;
+}
+
+/* 中央留白光场:更收敛、更柔 */
+.field__oval {
+  background:
+    radial-gradient(ellipse at center, rgba(250, 250, 250, 0.045) 0 20%, rgba(250, 250, 250, 0.012) 42%, transparent 66%);
+  filter: blur(6rem);
+  opacity: 0.9;
+}
+
+/* 两团极光:薄荷绿 + 冷青,极低透明度缓慢游移 */
+.field::before,
+.field::after {
+  border-radius: 50%;
+  content: "";
+  filter: blur(90rem);
+  position: absolute;
+  will-change: transform;
+}
+.field::before {
+  background: radial-gradient(circle, rgba(33, 255, 192, 0.07), transparent 64%);
+  height: 64vmax;
+  left: -14vmax;
+  top: -20vmax;
+  width: 64vmax;
+  animation: aurora-a 28s ease-in-out infinite alternate;
+}
+.field::after {
+  background: radial-gradient(circle, rgba(86, 178, 255, 0.045), transparent 62%);
+  bottom: -24vmax;
+  height: 58vmax;
+  right: -12vmax;
+  width: 58vmax;
+  animation: aurora-b 34s ease-in-out infinite alternate;
+}
+@keyframes aurora-a {
+  from { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(9vmax, 6vmax) scale(1.12); }
+  to   { transform: translate(3vmax, 12vmax) scale(0.96); }
+}
+@keyframes aurora-b {
+  from { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-8vmax, -5vmax) scale(1.1); }
+  to   { transform: translate(-3vmax, -11vmax) scale(0.94); }
+}
+
+/* 顶部一束极淡的"天光",呼应作品的舞台感 */
+.field__oval::before {
+  background: linear-gradient(180deg, rgba(33, 255, 192, 0.05), transparent 64%);
+  content: "";
+  height: 34vh;
+  left: 50%;
+  -webkit-mask-image: radial-gradient(ellipse 52% 100% at 50% 0%, #000, transparent 88%);
+  mask-image: radial-gradient(ellipse 52% 100% at 50% 0%, #000, transparent 88%);
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 120vw;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field::before, .field::after { animation: none; }
+  .field { transform: none; transition: none; }
+}
+
+/* ============================================================
+   list 页筛选器 + 视频卡片
+   ============================================================ */
+.media-filter {
+  align-items: center;
+  background: rgba(250, 250, 250, 0.045);
+  border: 1rem solid rgba(250, 250, 250, 0.1);
+  border-radius: 999rem;
+  backdrop-filter: blur(18rem);
+  -webkit-backdrop-filter: blur(18rem);
+  display: inline-flex;
+  gap: 4rem;
+  margin-bottom: 34rem;
+  padding: 5rem;
+  position: sticky;
+  top: calc(var(--margin) + 70rem);
+  z-index: 30;
+}
+
+.filter-indicator {
+  background: var(--white);
+  border-radius: 999rem;
+  height: calc(100% - 10rem);
+  left: 0;
+  position: absolute;
+  top: 5rem;
+  transition: transform 0.45s var(--spring), width 0.45s var(--spring);
+  width: 0;
+  z-index: 0;
+}
+
+.filter-tab {
+  align-items: center;
+  border-radius: 999rem;
+  color: rgba(250, 250, 250, 0.62);
+  display: inline-flex;
+  font-size: 13.5rem;
+  font-weight: 650;
+  gap: 7rem;
+  letter-spacing: 0.04em;
+  padding: 9rem 18rem;
+  position: relative;
+  transition: color 0.3s ease;
+  z-index: 1;
+}
+.filter-tab span {
+  color: inherit;
+  font-size: 11rem;
+  font-weight: 700;
+  opacity: 0.55;
+}
+.filter-tab svg {
+  fill: currentColor;
+  height: 11rem;
+  width: 11rem;
+}
+.filter-tab:hover { color: var(--white); }
+.filter-tab.is-active { color: var(--ink); }
+.filter-tab--video.is-active svg { fill: var(--ink); }
+
+/* 视频 tab 的呼吸点,提示这里有内容 */
+.filter-tab--video:not(.is-active)::after {
+  background: var(--green);
+  border-radius: 50%;
+  box-shadow: 0 0 8rem rgba(33, 255, 192, 0.8);
+  content: "";
+  height: 5rem;
+  position: absolute;
+  right: 8rem;
+  top: 8rem;
+  width: 5rem;
+  animation: video-dot 2.2s ease-in-out infinite;
+}
+@keyframes video-dot {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50%      { opacity: 1;   transform: scale(1.15); }
+}
+
+/* 筛选过渡 */
+.media-card.is-filtered-out {
+  display: none;
+}
+
+/* 视频角标:毛玻璃 + 播放键 */
+.media-badge {
+  align-items: center;
+  background: rgba(8, 10, 9, 0.55);
+  backdrop-filter: blur(10rem);
+  -webkit-backdrop-filter: blur(10rem);
+  border: 1rem solid rgba(250, 250, 250, 0.18);
+  border-radius: 999rem;
+  color: var(--white);
+  display: inline-flex;
+  gap: 6rem;
+  left: 10rem;
+  padding: 5rem 11rem 5rem 8rem;
+  position: absolute;
+  top: 10rem;
+  transition: background 0.3s ease, border-color 0.3s ease;
+  z-index: 3;
+}
+.media-badge svg {
+  fill: var(--green);
+  filter: drop-shadow(0 0 5rem rgba(33, 255, 192, 0.7));
+  height: 11rem;
+  width: 11rem;
+}
+.media-badge em {
+  font-size: 10rem;
+  font-style: normal;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+}
+.media-card--video:hover .media-badge {
+  background: rgba(8, 10, 9, 0.78);
+  border-color: rgba(33, 255, 192, 0.5);
+}
+
+/* 悬停预览:视频淡入盖住封面 */
+.media-card-preview {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.35s ease;
+  width: 100%;
+  z-index: 2;
+}
+.media-card-thumb.is-previewing .media-card-preview { opacity: 1; }
+
+@media (max-width: 720px) {
+  .media-filter { top: calc(var(--margin) + 58rem); }
+  .filter-tab { font-size: 12.5rem; padding: 8rem 13rem; }
+}
