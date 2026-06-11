@@ -2103,3 +2103,171 @@ body.has-entered .loader {
     margin-top: 38rem;
   }
 }
+
+/* ============================================================
+   性能 + 特效增强 (2026-06 优化)
+   ============================================================ */
+
+/* —— 自定义光标 —— */
+.has-custom-cursor body { cursor: none; }
+.has-custom-cursor a,
+.has-custom-cursor button,
+.has-custom-cursor [data-project-card] { cursor: none; }
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  border-radius: 50%;
+  will-change: transform;
+}
+.cursor-dot {
+  width: 7px; height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  background: currentColor;
+  color: #f5f3ee;
+  mix-blend-mode: difference;
+  transition: opacity .25s ease;
+}
+.cursor-ring {
+  width: 34px; height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1.2px solid rgba(245, 243, 238, .85);
+  mix-blend-mode: difference;
+  transition: width .3s cubic-bezier(.22,1,.36,1),
+              height .3s cubic-bezier(.22,1,.36,1),
+              margin .3s cubic-bezier(.22,1,.36,1),
+              opacity .25s ease,
+              border-color .3s ease;
+}
+.cursor-ring.is-active {
+  width: 56px; height: 56px;
+  margin: -28px 0 0 -28px;
+  border-color: rgba(245, 243, 238, .55);
+}
+.cursor-ring.is-pressed {
+  width: 24px; height: 24px;
+  margin: -12px 0 0 -12px;
+}
+
+/* —— 磁吸按钮 —— */
+.is-magnetic {
+  transform: translate(var(--magX, 0px), var(--magY, 0px));
+  transition: transform .35s cubic-bezier(.22,1,.36,1);
+}
+
+/* —— 详情页：渐进式加载（缩略图先模糊呈现，大图淡入） —— */
+img.detail-media.is-progressive {
+  filter: blur(14px) saturate(1.08);
+  transform: scale(1.04);
+}
+img.detail-media.is-loaded {
+  animation: detail-sharpen .7s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes detail-sharpen {
+  from { filter: blur(14px) saturate(1.08); transform: scale(1.04); opacity: .85; }
+  to   { filter: blur(0) saturate(1);       transform: scale(1);    opacity: 1; }
+}
+
+/* 加载时的流光骨架 */
+.project-media-inner.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg,
+    transparent 30%,
+    rgba(255,255,255,.14) 48%,
+    rgba(255,255,255,.22) 52%,
+    rgba(255,255,255,.14) 56%,
+    transparent 74%);
+  background-size: 220% 100%;
+  animation: media-shimmer 1.4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes media-shimmer {
+  from { background-position: 130% 0; }
+  to   { background-position: -90% 0; }
+}
+
+/* —— 详情大图 3D 倾斜 + 光泽追随 —— */
+.project-media { perspective: 1100px; }
+.project-media-inner.has-tilt {
+  position: relative;
+  transform: rotateX(var(--tiltX, 0deg)) rotateY(var(--tiltY, 0deg));
+  transition: transform .25s ease-out;
+  transform-style: preserve-3d;
+}
+.project-media-inner.has-tilt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--glareX, 50%) var(--glareY, 50%),
+    rgba(255,255,255,.10), transparent 62%);
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.project-media-inner.has-tilt:hover::before { opacity: 1; }
+
+/* —— 列表卡片交错浮现 —— */
+.will-reveal {
+  opacity: 0;
+  transform: translateY(26px) scale(.985);
+  transition: opacity .7s cubic-bezier(.22,1,.36,1),
+              transform .7s cubic-bezier(.22,1,.36,1);
+}
+.will-reveal.is-revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* —— 缩略图悬停流光扫过 —— */
+.media-card-thumb { position: relative; overflow: hidden; }
+.media-card-thumb::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -75%;
+  width: 45%;
+  height: 140%;
+  transform: rotate(18deg) translateX(0);
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255,255,255,.20) 45%,
+    rgba(255,255,255,.32) 50%,
+    rgba(255,255,255,.20) 55%,
+    transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+.media-card:hover .media-card-thumb::after {
+  opacity: 1;
+  animation: thumb-shine .85s cubic-bezier(.3,.6,.3,1) forwards;
+}
+@keyframes thumb-shine {
+  to { transform: rotate(18deg) translateX(420%); }
+}
+.media-card:hover .media-card-thumb img {
+  transform: scale(1.045);
+}
+.media-card-thumb img {
+  transition: transform .8s cubic-bezier(.22,1,.36,1);
+}
+
+/* —— 降低动效偏好时全部关闭 —— */
+@media (prefers-reduced-motion: reduce) {
+  .cursor-dot, .cursor-ring { display: none; }
+  .has-custom-cursor body,
+  .has-custom-cursor a,
+  .has-custom-cursor button { cursor: auto; }
+  .will-reveal { opacity: 1; transform: none; transition: none; }
+  .project-media-inner.has-tilt { transform: none; }
+  img.detail-media.is-progressive,
+  img.detail-media.is-loaded { filter: none; transform: none; animation: none; }
+}

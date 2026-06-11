@@ -135,7 +135,7 @@ function createMediaItem(options) {
   const mediaSrc =
     mediaType === "video"
       ? `${mediaRoot}/videos/${options.file}`
-      : `${mediaRoot}/full/${options.file}`;
+      : `${mediaRoot}/full-webp/${stem}.webp`;
 
   const item = {
     title: options.title,
@@ -1011,6 +1011,7 @@ function render() {
 
   window.scrollTo({ top: 0, behavior: "instant" });
   app.focus({ preventScroll: true });
+  attachCardReveal();
 }
 
 function setMode(nextMode) {
@@ -1050,7 +1051,7 @@ function attachSpiralMotion() {
   let disposed = false;
   let controller = null;
 
-  import("./mobius-spiral.js?v=19")
+  import("./mobius-spiral.js?v=20")
     .then(({ createMobiusSpiral }) => {
       if (disposed) return;
       controller = createMobiusSpiral(container, projects, {
@@ -1086,7 +1087,7 @@ function renderMediaCard(project) {
   return `
     <a class="media-card media-card--${project.mediaType}" href="#/projects/${project.slug}" data-project-card data-slug="${project.slug}">
       <span class="media-card-thumb">
-        <img src="${project.thumb}" alt="${escapeHtml(project.title)} thumbnail" loading="lazy">
+        <img src="${project.thumb}" alt="${escapeHtml(project.title)} thumbnail" loading="lazy" decoding="async">
       </span>
       <span class="media-card-copy">
         <span class="media-card-title">${escapeHtml(project.title)}</span>
@@ -1199,7 +1200,7 @@ function renderAbout() {
     .map(
       (project) => `
       <a class="about-thumb" href="#/projects/${project.slug}">
-        <img src="${project.thumb}" alt="${escapeHtml(project.title)}">
+        <img src="${project.thumb}" alt="${escapeHtml(project.title)}" loading="lazy" decoding="async">
         <span><em>view project</em></span>
       </a>
     `
@@ -1271,8 +1272,8 @@ function renderProject(slug) {
   body.dataset.route = "project";
   const mediaMarkup =
     project.mediaType === "video"
-      ? `<video class="detail-media" controls autoplay muted loop playsinline poster="${project.thumb}" src="${project.mediaSrc}"></video>`
-      : `<img class="detail-media" src="${project.mediaSrc}" alt="${escapeHtml(project.title)}">`;
+      ? `<video class="detail-media" controls autoplay muted loop playsinline preload="auto" poster="${project.thumb}" src="${project.mediaSrc}"></video>`
+      : `<img class="detail-media is-progressive" src="${project.thumb}" data-full="${project.mediaSrc}" alt="${escapeHtml(project.title)}" decoding="async">`;
 
   app.innerHTML = `
     <article class="project-page">
@@ -1305,7 +1306,93 @@ function renderProject(slug) {
 
   const video = app.querySelector("video.detail-media");
   if (video) video.play().catch(() => {});
+  attachProgressiveMedia();
+  attachMediaTilt();
   runPendingProjectTransition(project);
+}
+
+/* —— 渐进式加载：先显示缩略图(已缓存)，大图就位后淡入 —— */
+function attachProgressiveMedia() {
+  const img = app.querySelector("img.detail-media.is-progressive");
+  if (!img) return;
+  const frame = img.closest(".project-media-inner");
+  frame?.classList.add("is-loading");
+
+  const full = new Image();
+  full.decoding = "async";
+  full.src = img.dataset.full;
+
+  const reveal = () => {
+    if (!img.isConnected) return;
+    img.src = full.src;
+    img.classList.remove("is-progressive");
+    img.classList.add("is-loaded");
+    frame?.classList.remove("is-loading");
+  };
+  if (full.decode) {
+    full.decode().then(reveal).catch(() => { full.onload = reveal; });
+  } else {
+    full.onload = reveal;
+  }
+  cleanups.push(() => { full.onload = null; });
+}
+
+/* —— 作品大图 3D 视差倾斜 —— */
+function attachMediaTilt() {
+  if (!window.matchMedia("(pointer: fine)").matches) return;
+  const frame = app.querySelector(".project-media-inner");
+  if (!frame) return;
+  frame.classList.add("has-tilt");
+
+  let raf = 0;
+  const onMove = (event) => {
+    const rect = frame.getBoundingClientRect();
+    const px = (event.clientX - rect.left) / rect.width - 0.5;
+    const py = (event.clientY - rect.top) / rect.height - 0.5;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      frame.style.setProperty("--tiltX", `${(-py * 5).toFixed(2)}deg`);
+      frame.style.setProperty("--tiltY", `${(px * 7).toFixed(2)}deg`);
+      frame.style.setProperty("--glareX", `${((px + 0.5) * 100).toFixed(1)}%`);
+      frame.style.setProperty("--glareY", `${((py + 0.5) * 100).toFixed(1)}%`);
+    });
+  };
+  const onLeave = () => {
+    cancelAnimationFrame(raf);
+    frame.style.setProperty("--tiltX", "0deg");
+    frame.style.setProperty("--tiltY", "0deg");
+  };
+  frame.addEventListener("pointermove", onMove);
+  frame.addEventListener("pointerleave", onLeave);
+  cleanups.push(() => {
+    cancelAnimationFrame(raf);
+    frame.removeEventListener("pointermove", onMove);
+    frame.removeEventListener("pointerleave", onLeave);
+  });
+}
+
+/* —— 列表卡片进入视口时交错浮现 —— */
+function attachCardReveal() {
+  const cards = Array.from(app.querySelectorAll(".media-card"));
+  if (!cards.length || !("IntersectionObserver" in window)) return;
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        el.style.transitionDelay = `${(Number(el.dataset.revealIndex) % 8) * 55}ms`;
+        el.classList.add("is-revealed");
+        io.unobserve(el);
+      });
+    },
+    { threshold: 0.12, rootMargin: "0px 0px -4% 0px" }
+  );
+  cards.forEach((card, index) => {
+    card.dataset.revealIndex = index;
+    card.classList.add("will-reveal");
+    io.observe(card);
+  });
+  cleanups.push(() => io.disconnect());
 }
 
 function enterSite(useSound) {
@@ -1391,5 +1478,60 @@ if (new URLSearchParams(window.location.search).has("skipIntro")) {
   body.classList.add("has-entered", "is-muted");
   if (loader) loader.hidden = true;
 }
+
+/* —— 自定义光标：小圆点 + 拖尾光环，悬停可交互元素时放大 —— */
+(function initCustomCursor() {
+  if (!window.matchMedia("(pointer: fine)").matches) return;
+
+  const dot = document.createElement("div");
+  const ring = document.createElement("div");
+  dot.className = "cursor-dot";
+  ring.className = "cursor-ring";
+  document.body.append(ring, dot);
+  document.documentElement.classList.add("has-custom-cursor");
+
+  let mx = innerWidth / 2, my = innerHeight / 2;
+  let rx = mx, ry = my;
+
+  window.addEventListener("pointermove", (e) => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.transform = `translate(${mx}px, ${my}px)`;
+    const t = e.target;
+    const interactive = t.closest?.("a, button, [data-project-card], .mode-button, input, textarea, video");
+    ring.classList.toggle("is-active", Boolean(interactive));
+  }, { passive: true });
+
+  window.addEventListener("pointerdown", () => ring.classList.add("is-pressed"));
+  window.addEventListener("pointerup", () => ring.classList.remove("is-pressed"));
+  document.addEventListener("mouseleave", () => { dot.style.opacity = "0"; ring.style.opacity = "0"; });
+  document.addEventListener("mouseenter", () => { dot.style.opacity = "1"; ring.style.opacity = "1"; });
+
+  (function trail() {
+    rx += (mx - rx) * 0.16;
+    ry += (my - ry) * 0.16;
+    ring.style.transform = `translate(${rx}px, ${ry}px)`;
+    requestAnimationFrame(trail);
+  })();
+})();
+
+/* —— 磁吸按钮：指针靠近时轻微吸附 —— */
+(function initMagneticButtons() {
+  if (!window.matchMedia("(pointer: fine)").matches) return;
+  const targets = document.querySelectorAll(".mode-button, .menu-button, .sound-button, .blessing-trigger");
+  targets.forEach((el) => {
+    el.classList.add("is-magnetic");
+    el.addEventListener("pointermove", (e) => {
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      el.style.setProperty("--magX", `${(x * 0.28).toFixed(1)}px`);
+      el.style.setProperty("--magY", `${(y * 0.28).toFixed(1)}px`);
+    });
+    el.addEventListener("pointerleave", () => {
+      el.style.setProperty("--magX", "0px");
+      el.style.setProperty("--magY", "0px");
+    });
+  });
+})();
 
 render();
